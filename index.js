@@ -23,7 +23,7 @@ const emitPlayersUpdated = (roomId, players) => {
 const emitStartGame = (socket, roomId, players) => {
   io.to(roomId).emit('gameStarted');
 
-  const pokerGame = new PokerGame(players, socket, io);
+  const pokerGame = new PokerGame(players, socket, io, roomId);
   pokerGame.playGame();
 };
 

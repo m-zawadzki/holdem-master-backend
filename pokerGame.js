@@ -1,13 +1,12 @@
 class Card {
   constructor(suit, rank) {
-    this.suit = suit;
-    this.rank = rank;
+    this.card = `${rank}_of_${suit}`;
   }
 }
 
 class Deck {
   constructor() {
-    this.suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades'];
+    this.suits = ['hearts', 'diamonds', 'clubs', 'spades'];
     this.ranks = [
       '2',
       '3',
@@ -18,10 +17,10 @@ class Deck {
       '8',
       '9',
       '10',
-      'Jack',
-      'Queen',
-      'King',
-      'Ace',
+      'jack',
+      'queen',
+      'king',
+      'ace',
     ];
     this.cards = this.initializeDeck();
     this.shuffleDeck();
@@ -59,7 +58,7 @@ class Deck {
 }
 
 export class PokerGame {
-  constructor(players, socket, io) {
+  constructor(players, socket, io, room) {
     this.deck = new Deck();
     this.players = players;
     this.cardsPerHand = 2;
@@ -70,6 +69,7 @@ export class PokerGame {
     this.playerBets = new Array(this.players.length).fill(0);
     this.socket = socket;
     this.io = io;
+    this.room = room;
   }
 
   startRound() {
@@ -78,9 +78,11 @@ export class PokerGame {
       this.players.length,
       this.cardsPerHand
     );
+
     this.playerHands.forEach((cards, index) => {
       this.io.to(this.players[index]).emit('dealingResult', cards);
     });
+
     this.currentRound++;
   }
 
@@ -94,6 +96,8 @@ export class PokerGame {
     this.communityCards = this.communityCards.concat(
       this.deck.dealCards(this.players.length, 3)[0]
     );
+
+    this.io.to(this.room).emit('flop', this.communityCards);
   }
 
   dealTurn() {
@@ -101,6 +105,8 @@ export class PokerGame {
     this.communityCards = this.communityCards.concat(
       this.deck.dealCards(this.players.length, 1)[0]
     );
+
+    this.io.to(this.room).emit('turn', this.communityCards);
   }
 
   dealRiver() {
@@ -108,6 +114,8 @@ export class PokerGame {
     this.communityCards = this.communityCards.concat(
       this.deck.dealCards(this.players.length, 1)[0]
     );
+
+    this.io.to(this.room).emit('river', this.communityCards);
   }
 
   startFinalBettingRound() {
